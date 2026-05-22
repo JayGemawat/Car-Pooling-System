@@ -1,44 +1,41 @@
-Carpool Project
-Welcome to the Carpool Project! This project provides a convenient platform for users to share rides and reduce their carbon footprint.
-The Carpool Project is a web application developed using PHP, CSS, and JavaScript. It allows users to offer and find carpool rides, aiming to reduce traffic congestion and promote eco-friendly commuting.
+# JaanaHai — Carpool App
 
+PHP MVC carpool app connected to Supabase PostgreSQL. No frameworks, no Composer.
 
-Prerequisites
-Before you begin, ensure you have met the following requirements:
+## Local dev
 
-PHP 7.4 or higher
-MySQL 5.7 or higher
-A web server (e.g., Apache, Nginx)
-Installation
-Clone the repository:
+```bash
+cd jaanahai/public
+php -S localhost:8000
+```
 
-bash
-Copy code
-git clone https://github.com/JayGemawat/Car-Pooling-System.git
-Navigate to the project directory:
+Open http://localhost:8000
 
-bash
-Copy code
-cd carpool-project
-Set up the database:
+## Setup
 
-Create a MySQL database.
-Import the database schema from database/schema.sql.
-Configure the project:
+1. Copy `.env.example` to `.env` and fill in your Supabase credentials.
+2. Run `database/schema.sql` against your Supabase PostgreSQL instance.
+3. Start the built-in PHP server as above.
 
-Rename .env.example to .env and update the database credentials.
-Running the Project
-Start your web server.
+## Structure
 
-Open the project in your web browser:
+```
+jaanahai/
+├── public/          ← web root (point server here)
+├── app/
+│   ├── Controllers/
+│   ├── Models/
+│   ├── Views/
+│   └── Middleware/
+├── config/
+├── routes/
+└── database/
+```
 
-url
-Copy code
-http://localhost/carpool-project
-Usage
-Sign Up: Create an account and log in.
-Post a Ride: Offer a ride by providing details such as origin, destination, and date.
-Search for a Ride: Find rides matching your criteria and book a spot.
+## Security notes
 
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
+- All passwords stored as bcrypt hashes via `password_hash()`.
+- All queries use PDO prepared statements — zero string interpolation in SQL.
+- CSRF tokens on every POST form.
+- `session_regenerate_id(true)` called on login.
+- DB credentials only in `.env` (never committed).

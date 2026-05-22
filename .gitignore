@@ -1,2 +1,4 @@
 .env
-carpool.sql
+vendor/
+.DS_Store
+*.log
