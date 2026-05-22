@@ -1,8 +1,6 @@
-const CACHE  = 'jaanahai-v1';
+const CACHE  = 'jaanahai-v2';
 const STATIC = [
-    '/css/bootstrap.min.css',
-    '/css/common.css',
-    '/js/bootstrap.min.js',
+    '/css/app.css',
     '/js/map.js',
     '/img/logo.jpg'
 ];
@@ -15,17 +13,32 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-    e.waitUntil(clients.claim());
+    e.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ).then(() => clients.claim())
+    );
 });
 
 self.addEventListener('fetch', e => {
-    // Never intercept navigation (HTML page) requests — let them go straight to server
-    if (e.request.mode === 'navigate') {
-        return;
-    }
-
-    // Cache-first for static assets only
+    if (e.request.mode === 'navigate') return;
     e.respondWith(
         caches.match(e.request).then(cached => cached || fetch(e.request))
     );
+});
+
+self.addEventListener('push', e => {
+    const d = e.data ? e.data.json() : { title: 'JaanaHai', body: 'New notification' };
+    e.waitUntil(
+        self.registration.showNotification(d.title, {
+            body:  d.body,
+            icon:  '/img/logo.jpg',
+            badge: '/img/logo.jpg',
+        })
+    );
+});
+
+self.addEventListener('notificationclick', e => {
+    e.notification.close();
+    e.waitUntil(clients.openWindow('/notifications'));
 });

@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
     gender      VARCHAR(10)  NOT NULL,
     contactno   BIGINT       NOT NULL,
     description TEXT         DEFAULT NULL,
-    credits     INTEGER      DEFAULT 0
+    credits     INTEGER      DEFAULT 0,
+    random      VARCHAR(6)   DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS offers (
@@ -22,7 +23,8 @@ CREATE TABLE IF NOT EXISTS offers (
     people      INTEGER      NOT NULL DEFAULT 1,
     price       INTEGER      NOT NULL DEFAULT 0,
     vehicle     VARCHAR(250) NOT NULL,
-    description TEXT         DEFAULT NULL
+    description TEXT         DEFAULT NULL,
+    status      VARCHAR(20)  DEFAULT 'open'
 );
 
 CREATE TABLE IF NOT EXISTS route (
@@ -48,3 +50,23 @@ CREATE TABLE IF NOT EXISTS comments (
     comment     TEXT         NOT NULL,
     cid         INTEGER      NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id         SERIAL PRIMARY KEY,
+    uid        INTEGER NOT NULL,
+    endpoint   TEXT    NOT NULL UNIQUE,
+    p256dh     TEXT    NOT NULL,
+    auth_key   TEXT    NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id         SERIAL PRIMARY KEY,
+    key        VARCHAR(255) NOT NULL,
+    hits       INTEGER NOT NULL DEFAULT 1,
+    window_end BIGINT  NOT NULL
+);
+
+-- Run these if tables already exist without the new columns:
+-- ALTER TABLE users  ADD COLUMN IF NOT EXISTS random  VARCHAR(6)  DEFAULT '';
+-- ALTER TABLE offers ADD COLUMN IF NOT EXISTS status  VARCHAR(20) DEFAULT 'open';

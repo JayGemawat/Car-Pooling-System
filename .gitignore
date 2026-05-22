@@ -3,4 +3,4 @@ vendor/
 .DS_Store
 *.log
 seed.php
-schema.sql
+

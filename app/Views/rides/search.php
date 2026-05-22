@@ -1,69 +1,90 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
-<div class="container">
-  <?php require __DIR__ . '/../layouts/menu.php'; ?>
 
-  <div class="row-fluid" id="main-content">
-    <div class="span1"></div>
-    <div class="span5">
-      <h2 align="center"><small>Search for a preferred ride</small></h2>
-      <hr><br>
+<div class="row g-4">
+  <!-- Search form -->
+  <div class="col-12 col-lg-5">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-search me-2"></i>Search for a ride</h5>
       <form method="post" action="/search">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
-        <input type="text" name="from"     class="typeahead" placeholder="Source"      value="<?= htmlspecialchars($_POST['from']     ?? '', ENT_QUOTES, 'UTF-8') ?>" required><br>
-        <input type="text" name="to"       class="typeahead" placeholder="Destination" value="<?= htmlspecialchars($_POST['to']       ?? '', ENT_QUOTES, 'UTF-8') ?>" required><br>
-        Time Range for your ride:<br>
-        Start Time:
-        <div id="uptimepicker" class="input-append date">
-          <input type="text" name="uptime"   value="<?= htmlspecialchars($_POST['uptime']   ?? '', ENT_QUOTES, 'UTF-8') ?>">
-          <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
-        </div><br>
-        End Time:
-        <div id="downtimepicker" class="input-append date">
-          <input type="text" name="downtime" value="<?= htmlspecialchars($_POST['downtime'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-          <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
-        </div><br><br>
-        <input class="btn" type="submit" value="Search">
+        <div class="mb-3 position-relative">
+          <label class="form-label">From</label>
+          <input type="text" id="from-input" name="from" class="form-control" placeholder="Source"
+                 value="<?= htmlspecialchars($_POST['from'] ?? '', ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" required>
+        </div>
+        <div class="mb-3 position-relative">
+          <label class="form-label">To</label>
+          <input type="text" id="to-input" name="to" class="form-control" placeholder="Destination"
+                 value="<?= htmlspecialchars($_POST['to'] ?? '', ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Start time</label>
+          <input type="text" id="uptimepicker" name="uptime" class="form-control" placeholder="yyyy-MM-dd HH:mm:ss"
+                 value="<?= htmlspecialchars($_POST['uptime'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">End time</label>
+          <input type="text" id="downtimepicker" name="downtime" class="form-control" placeholder="yyyy-MM-dd HH:mm:ss"
+                 value="<?= htmlspecialchars($_POST['downtime'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Search</button>
       </form>
     </div>
+  </div>
 
-    <div class="span5">
-      <h2 align="center"><small>Search Results</small></h2><hr>
-      <?php if (!empty($_POST) && empty($results)): ?>
-        <p align="center">No upcoming car pools match your request :(</p>
-      <?php elseif (!empty($results)): ?>
-        <table id="upcominglist" class="table table-hover">
-          <thead>
-            <tr><th>Id</th><th>Vehicle</th><th>From</th><th>To</th><th>Starting Time</th><th>Type</th></tr>
-          </thead>
-          <tbody>
-            <?php foreach ($results as $r): ?>
-              <?php
-                $direct = ($r['from'] === ($_POST['from'] ?? '') && $r['to'] === ($_POST['to'] ?? ''));
-              ?>
-              <tr>
-                <td><?= htmlspecialchars((string)$r['id'],      ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= htmlspecialchars($r['vehicle'],          ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= htmlspecialchars($r['from'],             ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= htmlspecialchars($r['to'],               ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= htmlspecialchars($r['uptime'],           ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= $direct ? 'Direct' : 'Via' ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      <?php endif; ?>
-    </div>
-    <div class="span1"></div>
+  <!-- Results -->
+  <div class="col-12 col-lg-7">
+    <h5 class="fw-bold mb-3"><i class="bi bi-list-ul me-2"></i>Search Results</h5>
+    <?php if (!empty($_POST) && empty($results)): ?>
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-emoji-frown fs-1"></i>
+        <p class="mt-2">No car pools match your request.</p>
+      </div>
+    <?php elseif (!empty($results)): ?>
+      <div class="row g-3">
+        <?php foreach ($results as $r): ?>
+          <?php
+            $direct = ($r['from'] === ($_POST['from'] ?? '') && $r['to'] === ($_POST['to'] ?? ''));
+            $icon   = ($r['vehicle'] === 'taxi') ? 'bi-taxi-front' : 'bi-car-front';
+          ?>
+          <div class="col-12">
+            <div class="card ride-card" onclick="window.location='/ride/<?= (int)$r['id'] ?>'">
+              <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi <?= $icon ?> fs-2 text-primary"></i>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">
+                    <?= htmlspecialchars($r['from'], ENT_QUOTES, 'UTF-8') ?>
+                    <i class="bi bi-arrow-right mx-1"></i>
+                    <?= htmlspecialchars($r['to'], ENT_QUOTES, 'UTF-8') ?>
+                  </div>
+                  <small class="text-muted"><i class="bi bi-clock me-1"></i><?= htmlspecialchars($r['uptime'], ENT_QUOTES, 'UTF-8') ?></small>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-1">
+                  <span class="badge <?= $direct ? 'bg-success' : 'bg-warning text-dark' ?>"><?= $direct ? 'Direct' : 'Via' ?></span>
+                  <span class="badge bg-primary"><?= htmlspecialchars(ucfirst($r['vehicle']), ENT_QUOTES, 'UTF-8') ?></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
-<?php require __DIR__ . '/../layouts/footer.php'; ?>
+
+<?php
+$pageScripts = <<<'JS'
 <script src="/js/datetimepicker.js"></script>
 <script>
-  $('#uptimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
-  $('#downtimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
-  $('td:nth-child(1),th:nth-child(1)').hide();
-  $('#upcominglist').find('tr').click(function() {
-    var row = $(this).find('td:first').text();
-    window.location.href = '/ride/' + row;
-  });
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof $ !== 'undefined' && $.fn.datetimepicker) {
+    $('#uptimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
+    $('#downtimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
+  }
+  JaanaHaiMap.autocomplete('from-input');
+  JaanaHaiMap.autocomplete('to-input');
+});
 </script>
+JS;
+require __DIR__ . '/../layouts/footer.php';
+?>

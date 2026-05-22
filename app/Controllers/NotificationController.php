@@ -64,6 +64,8 @@ class NotificationController {
                         'description' => $offer['description'],
                     ]);
                 }
+                // Push notify rider
+                PushController::sendToUser((int)$notif['sender'], 'Ride Approved! 🎉', 'Your ride request was approved.');
             }
 
             echo json_encode(['success' => true]);
@@ -124,6 +126,9 @@ class NotificationController {
             Mailer::sendRideConfirmation($rider['email'], $rider['name'], $offer);
             Mailer::sendRideRequest($driver['email'], $driver['name'], $rider['name'], $offer);
         }
+
+        // Push notify driver
+        PushController::sendToUser($ownerId, 'New Ride Request', ($rider['name'] ?? 'Someone') . ' wants to join your ride!');
 
         redirect('/?success=1');
     }

@@ -1,117 +1,108 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
-<div class="container">
-  <?php require __DIR__ . '/../layouts/menu.php'; ?>
 
-  <div class="row-fluid" id="main-content">
-    <div class="span1"></div>
-    <div class="span10">
-      <h2><small>Notifications</small></h2><hr>
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Car Pool</th>
-            <th>Type</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($notifications as $n): ?>
-            <?php
-              $type  = (int) $n['type'];
-              $slno  = (int) $n['slno'];
-              $offer = $offerCache[(int)$n['cid']] ?? null;
-              $route = $offer
-                ? htmlspecialchars($offer['from'], ENT_QUOTES, 'UTF-8') . ' → ' . htmlspecialchars($offer['to'], ENT_QUOTES, 'UTF-8')
-                : 'Unknown route';
-            ?>
-            <tr>
-              <td><?= htmlspecialchars($n['timestamp'], ENT_QUOTES, 'UTF-8') ?></td>
-              <td><?= $route ?></td>
+<h5 class="fw-bold mb-3"><i class="bi bi-bell me-2"></i>Notifications</h5>
 
-              <?php if ($type === 1): ?>
-                <td>Approve Request</td>
-                <td>
-                  <?php if ($n['status'] === 'Approved'): ?>
-                    <button class="btn" disabled>Approved</button>
-                  <?php elseif ($n['status'] === 'Declined'): ?>
-                    <button class="btn" disabled>Declined</button>
-                  <?php else: ?>
-                    <button class="btn" onclick="ApproveRequest(<?= $slno ?>, 1)">Approve</button>
-                    <button class="btn" onclick="ApproveRequest(<?= $slno ?>, 0)">Decline</button>
-                  <?php endif; ?>
-                </td>
-
-              <?php elseif ($type === 2): ?>
-                <td>Feedback</td>
-                <td>
-                  <?php if ($n['status'] !== null && $n['status'] !== ''): ?>
-                    <?= (int)$n['status'] ?>/5
-                  <?php else: ?>
-                    <div class="btn-group">
-                      <button id="ratingBtn<?= $slno ?>" class="btn dropdown-toggle" data-toggle="dropdown">
-                        Rating <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu">
-                        <?php for ($r = 1; $r <= 5; $r++): ?>
-                          <li><a href="#" onclick="setRating(<?= $slno ?>, <?= $r ?>)"><?= $r ?></a></li>
-                        <?php endfor; ?>
-                      </ul>
-                    </div>
-                    <button class="btn" onclick="RateRequest(<?= $slno ?>)">Submit</button>
-                  <?php endif; ?>
-                </td>
-
-              <?php elseif ($type === 3): ?>
-                <td>Request Status</td>
-                <td>
-                  <?php if ($n['status'] === 'Approved'): ?>
-                    Approved — Enjoy the ride!
-                  <?php elseif ($n['status'] === 'Declined'): ?>
-                    Declined :-(
-                  <?php else: ?>
-                    Pending
-                  <?php endif; ?>
-                </td>
-
-              <?php elseif ($type === 4): ?>
-                <td>Request Status</td>
-                <td>Still pending with the rider — please check back later.</td>
-
-              <?php else: ?>
-                <td>—</td><td>—</td>
-              <?php endif; ?>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (empty($notifications)): ?>
-            <tr><td colspan="4" align="center">No notifications yet.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-    <div class="span1"></div>
+<?php if (empty($notifications)): ?>
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-bell-slash fs-1"></i>
+    <p class="mt-2">No notifications yet.</p>
   </div>
-</div>
-<?php require __DIR__ . '/../layouts/footer.php'; ?>
+<?php else: ?>
+  <div class="list-group">
+    <?php foreach ($notifications as $n): ?>
+      <?php
+        $type  = (int) $n['type'];
+        $slno  = (int) $n['slno'];
+        $offer = $offerCache[(int)$n['cid']] ?? null;
+        $route = $offer
+          ? htmlspecialchars($offer['from'], ENT_QUOTES, 'UTF-8') . ' &rarr; ' . htmlspecialchars($offer['to'], ENT_QUOTES, 'UTF-8')
+          : 'Unknown route';
+      ?>
+      <div class="list-group-item list-group-item-action">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <div class="fw-semibold"><?= $route ?></div>
+            <small class="text-muted"><i class="bi bi-clock me-1"></i><?= htmlspecialchars($n['timestamp'], ENT_QUOTES, 'UTF-8') ?></small>
+          </div>
+          <div class="text-end">
+            <?php if ($type === 1): ?>
+              <span class="badge bg-info mb-1">Approve Request</span><br>
+              <?php if ($n['status'] === 'Approved'): ?>
+                <span class="badge bg-success">Approved</span>
+              <?php elseif ($n['status'] === 'Declined'): ?>
+                <span class="badge bg-danger">Declined</span>
+              <?php else: ?>
+                <button class="btn btn-sm btn-success me-1" onclick="approveRequest(<?= $slno ?>, 1)">
+                  <i class="bi bi-check-lg"></i> Approve
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="approveRequest(<?= $slno ?>, 0)">
+                  <i class="bi bi-x-lg"></i> Decline
+                </button>
+              <?php endif; ?>
+
+            <?php elseif ($type === 2): ?>
+              <span class="badge bg-warning text-dark mb-1">Feedback</span><br>
+              <?php if ($n['status'] !== null && $n['status'] !== ''): ?>
+                <span class="badge bg-secondary"><?= (int)$n['status'] ?>/5 stars</span>
+              <?php else: ?>
+                <div class="d-flex align-items-center gap-1">
+                  <select class="form-select form-select-sm" id="rating-<?= $slno ?>" style="width:80px">
+                    <?php for ($r = 1; $r <= 5; $r++): ?>
+                      <option value="<?= $r ?>"><?= $r ?></option>
+                    <?php endfor; ?>
+                  </select>
+                  <button class="btn btn-sm btn-primary" onclick="submitRating(<?= $slno ?>)">Submit</button>
+                </div>
+              <?php endif; ?>
+
+            <?php elseif ($type === 3): ?>
+              <span class="badge bg-secondary mb-1">Request Status</span><br>
+              <?php if ($n['status'] === 'Approved'): ?>
+                <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Approved — Enjoy the ride!</span>
+              <?php elseif ($n['status'] === 'Declined'): ?>
+                <span class="text-danger fw-semibold"><i class="bi bi-x-circle me-1"></i>Declined</span>
+              <?php else: ?>
+                <span class="text-muted">Pending</span>
+              <?php endif; ?>
+
+            <?php elseif ($type === 4): ?>
+              <span class="badge bg-secondary mb-1">Request Status</span><br>
+              <span class="text-muted small">Still pending with the rider.</span>
+
+            <?php else: ?>
+              <span class="badge bg-light text-dark">—</span>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
+<?php
+$csrfToken = htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8');
+$pageScripts = <<<JS
 <script>
-  var ratingValues = {};
+var csrfToken = '{$csrfToken}';
 
-  function setRating(slno, val) {
-    ratingValues[slno] = val;
-    $('#ratingBtn' + slno).html(val + '&nbsp;<span class="caret"></span>');
-  }
+function approveRequest(slno, stat) {
+  var status = stat === 1 ? 'Approved' : 'Declined';
+  fetch('/notifications', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'type=1&serialNo=' + slno + '&stat=' + encodeURIComponent(status) + '&csrf_token=' + encodeURIComponent(csrfToken)
+  }).then(function() { location.reload(); });
+}
 
-  function RateRequest(slno) {
-    var rating = ratingValues[slno] || 0;
-    $.post('/notifications', { type: 2, serialNo: slno, rating: rating, csrf_token: '<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>' })
-      .done(function() { location.reload(); });
-  }
-
-  function ApproveRequest(slno, stat) {
-    var status = stat === 1 ? 'Approved' : 'Declined';
-    $.post('/notifications', { type: 1, serialNo: slno, stat: status, csrf_token: '<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>' })
-      .done(function() { location.reload(); });
-  }
-
-  $('.dropdown-toggle').dropdown();
+function submitRating(slno) {
+  var rating = document.getElementById('rating-' + slno).value;
+  fetch('/notifications', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'type=2&serialNo=' + slno + '&rating=' + rating + '&csrf_token=' + encodeURIComponent(csrfToken)
+  }).then(function() { location.reload(); });
+}
 </script>
+JS;
+require __DIR__ . '/../layouts/footer.php';
+?>

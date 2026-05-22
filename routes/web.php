@@ -42,6 +42,9 @@ route('POST', '/profile',       fn() => (new ProfileController())->update());
 route('GET',  '/notifications', fn() => (new NotificationController())->index());
 route('POST', '/notifications', fn() => (new NotificationController())->update());
 route('POST', '/ride/request',  fn() => (new NotificationController())->requestRide());
+route('POST', '/payment/create', fn() => (new PaymentController())->createOrder());
+route('POST', '/payment/verify', fn() => (new PaymentController())->verifyPayment());
+route('POST', '/push/subscribe', fn() => (new PushController())->subscribe());
 
 // ── 404 fallback ───────────────────────────────────────────────────────────
 http_response_code(404);

@@ -1,32 +1,33 @@
 <?php
 $steps = [
-    'open'      => ['label' => 'Ride Posted',    'icon' => '📋'],
-    'requested' => ['label' => 'Rider Requested', 'icon' => '🙋'],
-    'confirmed' => ['label' => 'Ride Confirmed',  'icon' => '✅'],
-    'completed' => ['label' => 'Completed',        'icon' => '🏁'],
+    'open'      => ['label' => 'Ride Posted',     'icon' => 'bi-clipboard'],
+    'requested' => ['label' => 'Rider Requested', 'icon' => 'bi-hand-index'],
+    'confirmed' => ['label' => 'Confirmed',        'icon' => 'bi-check-circle'],
+    'completed' => ['label' => 'Completed',        'icon' => 'bi-flag'],
 ];
 $order   = array_keys($steps);
-$current = array_search($status ?? 'open', $order);
+$current = (int) array_search($status ?? 'open', $order);
 ?>
-<div style="display:flex;align-items:flex-start;gap:0;margin:16px 0">
+<div class="status-timeline mb-4">
 <?php foreach ($steps as $key => $step):
-    $idx    = array_search($key, $order);
+    $idx    = (int) array_search($key, $order);
     $done   = $idx < $current;
     $active = $idx === $current;
-    $color  = $done ? '#22c55e' : ($active ? '#3b82f6' : '#d1d5db');
+    $bg     = $done ? 'bg-success' : ($active ? 'bg-primary' : 'bg-secondary');
+    $lc     = $active ? 'text-primary fw-semibold' : 'text-muted';
 ?>
-    <div style="flex:1;text-align:center;position:relative">
-        <div style="width:32px;height:32px;border-radius:50%;background:<?= $color ?>;
-             color:white;display:flex;align-items:center;justify-content:center;
-             margin:0 auto;font-size:14px">
-            <?= $done ? '✓' : $step['icon'] ?>
-        </div>
-        <div style="font-size:11px;margin-top:4px;color:<?= $active ? '#1d4ed8' : '#6b7280' ?>;font-weight:<?= $active ? '600' : '400' ?>">
-            <?= $step['label'] ?>
-        </div>
-        <?php if ($idx < count($steps) - 1): ?>
-        <div style="position:absolute;top:16px;left:50%;width:100%;height:2px;background:<?= $done ? '#22c55e' : '#e5e7eb' ?>;z-index:-1"></div>
-        <?php endif ?>
+  <div class="status-step">
+    <div class="dot <?= $bg ?>">
+      <?php if ($done): ?>
+        <i class="bi bi-check-lg"></i>
+      <?php else: ?>
+        <i class="bi <?= $step['icon'] ?>"></i>
+      <?php endif; ?>
     </div>
-<?php endforeach ?>
+    <div class="label <?= $lc ?>"><?= $step['label'] ?></div>
+    <?php if ($idx < count($steps) - 1): ?>
+      <div class="line" style="background:<?= $done ? '#22c55e' : '#e5e7eb' ?>"></div>
+    <?php endif; ?>
+  </div>
+<?php endforeach; ?>
 </div>
