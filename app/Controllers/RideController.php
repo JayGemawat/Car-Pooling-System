@@ -48,18 +48,17 @@ class RideController {
         AuthMiddleware::verifyCsrf();
 
         $uid         = AuthMiddleware::userId();
-        $from        = trim($_POST['from']        ?? '');
-        $to          = trim($_POST['to']          ?? '');
-        $uptime      = trim($_POST['uptime']      ?? '');
-        $vehicle     = trim($_POST['vehicle']     ?? 'car');
-        $number      = (int) ($_POST['number']    ?? 1);
-        $cost        = (int) ($_POST['cost']      ?? 0);
-        $description = trim($_POST['description'] ?? '');
+        $from        = trim($_POST['from']           ?? '');
+        $to          = trim($_POST['to']             ?? '');
+        $uptime      = trim($_POST['uptime']         ?? '');
+        $vehicle     = trim($_POST['vehicle']        ?? 'car');
+        $number      = (int) ($_POST['number']       ?? 1);
+        $cost        = (int) ($_POST['cost']         ?? 0);
+        $description = trim($_POST['description']    ?? '');
         $totalVia    = (int) ($_POST['totalRequests'] ?? 0);
 
         if ($from === '' || $to === '' || $uptime === '') {
-            header('Location: /share?nerror=1');
-            exit;
+            redirect('/share?nerror=1');
         }
 
         $allowedVehicles = ['car', 'taxi', 'auto'];
@@ -78,7 +77,6 @@ class RideController {
             'description' => $description,
         ]);
 
-        // Insert route waypoints
         Offer::addRouteWaypoint($cid, $from, 1);
         for ($i = 1; $i <= $totalVia; $i++) {
             $place = trim($_POST['dynamic' . $i] ?? '');
@@ -88,7 +86,6 @@ class RideController {
         }
         Offer::addRouteWaypoint($cid, $to, $totalVia + 2);
 
-        header('Location: /?share=1');
-        exit;
+        redirect('/?share=1');
     }
 }

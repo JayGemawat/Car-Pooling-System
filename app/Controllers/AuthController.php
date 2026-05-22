@@ -15,23 +15,20 @@ class AuthController {
         $password = trim($_POST['password'] ?? '');
 
         if ($email === '' || $password === '') {
-            header('Location: /login?nerror=1');
-            exit;
+            redirect('/login?nerror=1');
         }
 
         $user = User::findByEmail($email);
 
         if (!$user || !User::verifyPassword($password, $user['hash'])) {
-            header('Location: /login?error=1');
-            exit;
+            redirect('/login?error=1');
         }
 
         session_regenerate_id(true);
         $_SESSION['user_id']   = $user['uid'];
         $_SESSION['user_name'] = $user['name'];
 
-        header('Location: /');
-        exit;
+        redirect('/');
     }
 
     public function showRegister(): void {
@@ -51,18 +48,15 @@ class AuthController {
         $description = trim($_POST['description'] ?? '');
 
         if ($name === '' || $email === '' || $password === '' || $contactno === '') {
-            header('Location: /register?nerror=1');
-            exit;
+            redirect('/register?nerror=1');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: /register?nerror=1');
-            exit;
+            redirect('/register?nerror=1');
         }
 
         if (User::findByEmail($email)) {
-            header('Location: /register?exists=1');
-            exit;
+            redirect('/register?exists=1');
         }
 
         $sex = ($gender === 'female') ? 'F' : 'M';
@@ -79,8 +73,7 @@ class AuthController {
         require_once __DIR__ . '/../Mail/Mailer.php';
         Mailer::sendWelcome($email, $name);
 
-        header('Location: /login?registered=1');
-        exit;
+        redirect('/login?registered=1');
     }
 
     public function logout(): void {
@@ -90,7 +83,6 @@ class AuthController {
             setcookie(session_name(), '', time() - 42000, '/');
         }
         session_destroy();
-        header('Location: /login?logout=1');
-        exit;
+        redirect('/login?logout=1');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/env.php';
 loadEnv(__DIR__ . '/../.env');
 
+require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../app/Middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../app/Models/User.php';
