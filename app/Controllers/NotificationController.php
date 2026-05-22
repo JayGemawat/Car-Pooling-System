@@ -8,7 +8,6 @@ class NotificationController {
         $uid           = AuthMiddleware::userId();
         $notifications = Notification::getForUser($uid);
 
-        // Pre-fetch offer details for each notification to keep view logic-free
         $offerCache = [];
         foreach ($notifications as $n) {
             $cid = (int) $n['cid'];
@@ -28,7 +27,6 @@ class NotificationController {
         $slno = (int) ($_POST['serialNo'] ?? 0);
 
         if ($type === 1) {
-            // Approve or decline a ride request
             $stat = trim($_POST['stat'] ?? '');
             if (!in_array($stat, ['Approved', 'Declined'], true)) {
                 http_response_code(400);
@@ -45,7 +43,6 @@ class NotificationController {
 
             Notification::updateStatus($slno, $stat);
 
-            // Notify the original sender of the decision
             Notification::create([
                 'sender'   => (int) $notif['receiver'],
                 'receiver' => (int) $notif['sender'],
@@ -55,7 +52,6 @@ class NotificationController {
             ]);
 
             if ($stat === 'Approved') {
-                // Decrement available seats
                 $offer = Offer::findById((int) $notif['cid']);
                 if ($offer) {
                     Offer::update((int) $offer['id'], [
@@ -68,6 +64,8 @@ class NotificationController {
                         'description' => $offer['description'],
                     ]);
                 }
+                // Push notify rider
+                PushController::sendToUser((int)$notif['sender'], 'Ride Approved! 🎉', 'Your ride request was approved.');
             }
 
             echo json_encode(['success' => true]);
@@ -75,7 +73,6 @@ class NotificationController {
         }
 
         if ($type === 2) {
-            // Rating submission
             $rating = (int) ($_POST['rating'] ?? 0);
             if ($rating < 1 || $rating > 5) {
                 http_response_code(400);
@@ -91,7 +88,6 @@ class NotificationController {
         echo json_encode(['error' => 'Unknown type']);
     }
 
-    /** Handle ride join request (replaces addCarShare.php) */
     public function requestRide(): void {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
@@ -101,13 +97,11 @@ class NotificationController {
 
         $offer = Offer::findById($cid);
         if (!$offer) {
-            header('Location: /?error=1');
-            exit;
+            redirect('/?error=1');
         }
 
         $ownerId = (int) $offer['uid'];
 
-        // Pending notification for the requester
         Notification::create([
             'sender'   => $uid,
             'receiver' => $uid,
@@ -116,7 +110,6 @@ class NotificationController {
             'status'   => null,
         ]);
 
-        // Approval request to the ride owner
         Notification::create([
             'sender'   => $uid,
             'receiver' => $ownerId,
@@ -130,20 +123,13 @@ class NotificationController {
         $rider  = User::findById($uid);
         $driver = User::findById($ownerId);
         if ($rider && $driver) {
-            Mailer::sendRideConfirmation(
-                $rider['email'],
-                $rider['name'],
-                $offer
-            );
-            Mailer::sendRideRequest(
-                $driver['email'],
-                $driver['name'],
-                $rider['name'],
-                $offer
-            );
+            Mailer::sendRideConfirmation($rider['email'], $rider['name'], $offer);
+            Mailer::sendRideRequest($driver['email'], $driver['name'], $rider['name'], $offer);
         }
 
-        header('Location: /?success=1');
-        exit;
+        // Push notify driver
+        PushController::sendToUser($ownerId, 'New Ride Request', ($rider['name'] ?? 'Someone') . ' wants to join your ride!');
+
+        redirect('/?success=1');
     }
 }

@@ -10,7 +10,6 @@ class ProfileController {
         $rides    = Offer::getByUserId($uid);
         $allUsers = User::allByCredits();
 
-        // Compute badge based on credit ranking
         $badge = self::computeBadge($uid, $allUsers);
 
         require __DIR__ . '/../Views/profile/index.php';
@@ -27,8 +26,7 @@ class ProfileController {
         $description = trim($_POST['description'] ?? '');
 
         if ($name === '' || $contactno === '') {
-            header('Location: /profile?nerror=1');
-            exit;
+            redirect('/profile?nerror=1');
         }
 
         $sex = ($gender === 'female') ? 'F' : 'M';
@@ -40,8 +38,7 @@ class ProfileController {
             'description' => $description,
         ]);
 
-        header('Location: /profile?changed=1');
-        exit;
+        redirect('/profile?changed=1');
     }
 
     public static function computeBadge(int $uid, array $allUsers): string {

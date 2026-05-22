@@ -1,79 +1,118 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
-<div class="container">
-  <?php if (isset($_GET['nerror'])): ?>
-    <div class="alert alert-error">Please enter all required details before continuing.</div>
-  <?php endif; ?>
 
-  <?php require __DIR__ . '/../layouts/menu.php'; ?>
+<?php if (isset($_GET['nerror'])): ?>
+  <div class="alert alert-danger">Please enter all required details before continuing.</div>
+<?php endif; ?>
 
-  <div class="row-fluid" id="main-content">
-    <div class="span2"></div>
-    <div class="span8">
-      <h2 align="center"><small>Share your ride</small></h2>
-      <hr><br>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Share your ride</h5>
       <form method="post" action="/share">
-        <input type="hidden" name="csrf_token"     value="<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
-        <input type="hidden" id="total"            name="totalRequests" value="0">
+        <input type="hidden" name="csrf_token"      value="<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" id="total"             name="totalRequests" value="0">
 
-        <input type="text" id="From" name="from" class="typeahead" placeholder="Source"      required><br>
-        <div class="inputs"></div>
-        <input type="text" id="To"   name="to"   class="typeahead" placeholder="Destination" required><br>
-
-        <div class="btn-group">
-          <button type="button" class="btn" id="add">Add Via Route</button>
-          <button type="button" class="btn" id="remove">Remove Via</button>
-          <button type="button" class="btn" id="reset">Reset Via</button>
+        <div class="mb-3 position-relative">
+          <label class="form-label">From</label>
+          <input type="text" id="From" name="from" class="form-control" placeholder="Source" autocomplete="off" required>
         </div>
-        <br><br>
 
-        Start Time of your ride:
-        <div id="uptimepicker" class="input-append date">
-          <input type="text" name="uptime" required>
-          <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
-        </div><br>
+        <div class="via-inputs mb-2"></div>
 
-        Mode of Travel:<br>
-        <label class="radio inline"><input type="radio" name="vehicle" value="car"  required> Car</label>
-        <label class="radio inline"><input type="radio" name="vehicle" value="taxi"> Taxi</label>
-        <label class="radio inline"><input type="radio" name="vehicle" value="auto"> Auto Rickshaw</label>
-        <br><br>
+        <div class="mb-3 position-relative">
+          <label class="form-label">To</label>
+          <input type="text" id="To" name="to" class="form-control" placeholder="Destination" autocomplete="off" required>
+        </div>
 
-        <div class="input-append">
-          <input type="text" name="time" placeholder="Approx duration of travel" required>
-          <span class="add-on">Hrs</span>
-        </div><br>
+        <div class="d-flex gap-2 mb-3">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="add"><i class="bi bi-plus me-1"></i>Add Via</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="remove"><i class="bi bi-dash me-1"></i>Remove Via</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="reset"><i class="bi bi-x me-1"></i>Reset Via</button>
+        </div>
 
-        <input type="number" name="number" placeholder="Number of vacancies"><br>
+        <div class="mb-3">
+          <label class="form-label">Start time of your ride</label>
+          <input type="text" id="uptimepicker" name="uptime" class="form-control" placeholder="yyyy-MM-dd HH:mm:ss" required>
+        </div>
 
-        <div class="input-prepend">
-          <span class="add-on">Rs</span>
-          <input class="span10" type="number" name="cost" placeholder="Cost per person" required>
-        </div><br><br>
+        <div class="mb-3">
+          <label class="form-label">Mode of travel</label><br>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="vehicle" id="vCar"  value="car" required>
+            <label class="form-check-label" for="vCar"><i class="bi bi-car-front me-1"></i>Car</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="vehicle" id="vTaxi" value="taxi">
+            <label class="form-check-label" for="vTaxi"><i class="bi bi-taxi-front me-1"></i>Taxi</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="vehicle" id="vAuto" value="auto">
+            <label class="form-check-label" for="vAuto">Auto Rickshaw</label>
+          </div>
+        </div>
 
-        <textarea rows="3" name="description" placeholder="Any further details about your ride"></textarea><br>
-        <input class="btn btn-primary" type="submit" value="Share Ride">
+        <div class="mb-3">
+          <label class="form-label">Approx duration (hours)</label>
+          <input type="text" name="time" class="form-control" placeholder="e.g. 1.5" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Number of vacancies</label>
+          <input type="number" name="number" class="form-control" placeholder="Seats available" min="1">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Cost per person (Rs)</label>
+          <div class="input-group">
+            <span class="input-group-text">Rs</span>
+            <input type="number" name="cost" class="form-control" placeholder="0" min="0" required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea rows="3" name="description" class="form-control" placeholder="Any further details about your ride"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-share me-1"></i>Share Ride</button>
       </form>
     </div>
-    <div class="span2"></div>
   </div>
 </div>
-<?php require __DIR__ . '/../layouts/footer.php'; ?>
+
+<?php
+$pageScripts = <<<'JS'
 <script src="/js/datetimepicker.js"></script>
 <script>
-  $('#uptimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof $ !== 'undefined' && $.fn.datetimepicker) {
+    $('#uptimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
+  }
+  JaanaHaiMap.autocomplete('From');
+  JaanaHaiMap.autocomplete('To');
 
   var i = 0;
-  $('#add').click(function() {
-    var name = 'dynamic' + (i + 1);
-    $('<div><input type="text" class="field" placeholder="Via stop" name="' + name + '"></div>')
-      .fadeIn('slow').appendTo('.inputs');
+  document.getElementById('add').addEventListener('click', function() {
     i++;
-    $('#total').val(i);
+    var name = 'dynamic' + i;
+    var div  = document.createElement('div');
+    div.className = 'mb-2 position-relative';
+    div.innerHTML = '<input type="text" class="form-control via-field" placeholder="Via stop" name="' + name + '">';
+    document.querySelector('.via-inputs').appendChild(div);
+    document.getElementById('total').value = i;
+    var inp = div.querySelector('input');
+    if (inp) JaanaHaiMap.autocomplete(inp.id || (inp.id = 'via-' + i));
   });
-  $('#remove').click(function() {
-    if (i > 0) { $('.field:last').parent().remove(); i--; $('#total').val(i); }
+  document.getElementById('remove').addEventListener('click', function() {
+    var fields = document.querySelectorAll('.via-inputs .mb-2');
+    if (fields.length > 0) { fields[fields.length - 1].remove(); i--; document.getElementById('total').value = i; }
   });
-  $('#reset').click(function() {
-    $('.inputs').empty(); i = 0; $('#total').val(0);
+  document.getElementById('reset').addEventListener('click', function() {
+    document.querySelector('.via-inputs').innerHTML = '';
+    i = 0; document.getElementById('total').value = 0;
   });
+});
 </script>
+JS;
+require __DIR__ . '/../layouts/footer.php';
+?>

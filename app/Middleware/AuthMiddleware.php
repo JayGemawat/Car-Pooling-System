@@ -7,8 +7,7 @@ class AuthMiddleware {
             session_start();
         }
         if (empty($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
+            redirect('/login');
         }
     }
 
@@ -17,8 +16,7 @@ class AuthMiddleware {
             session_start();
         }
         if (!empty($_SESSION['user_id'])) {
-            header('Location: /');
-            exit;
+            redirect('/');
         }
     }
 
@@ -26,7 +24,6 @@ class AuthMiddleware {
         return (int) ($_SESSION['user_id'] ?? 0);
     }
 
-    /** Generate a CSRF token and store it in the session. */
     public static function csrfToken(): string {
         if (empty($_SESSION['csrf_token'])) {
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -34,7 +31,6 @@ class AuthMiddleware {
         return $_SESSION['csrf_token'];
     }
 
-    /** Verify the CSRF token from a POST request. Exits on failure. */
     public static function verifyCsrf(): void {
         $token = $_POST['csrf_token'] ?? '';
         if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {

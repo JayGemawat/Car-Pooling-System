@@ -1,41 +1,43 @@
-# JaanaHai — Carpool App
+# JaanaHai — Carpool
 
-PHP MVC carpool app connected to Supabase PostgreSQL. No frameworks, no Composer.
-
-## Local dev
-
-```bash
-cd jaanahai/public
-php -S localhost:8000
-```
-
-Open http://localhost:8000
+A mobile-first PHP carpool application with Razorpay payments, Web Push notifications, and real-time ride updates.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in your Supabase credentials.
-2. Run `database/schema.sql` against your Supabase PostgreSQL instance.
-3. Start the built-in PHP server as above.
+1. Copy `.env.example` to `.env` and fill in all values
+2. Run `php database/seed.php` to populate test data
+3. Run `php -S localhost:8000 -t public` to start local server
+4. Visit http://localhost:8000
 
-## Structure
+## Generate VAPID keys
 
 ```
-jaanahai/
-├── public/          ← web root (point server here)
-├── app/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Views/
-│   └── Middleware/
-├── config/
-├── routes/
-└── database/
+npx web-push generate-vapid-keys
 ```
 
-## Security notes
+Paste the output into `.env` as `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`.
 
-- All passwords stored as bcrypt hashes via `password_hash()`.
-- All queries use PDO prepared statements — zero string interpolation in SQL.
-- CSRF tokens on every POST form.
-- `session_regenerate_id(true)` called on login.
-- DB credentials only in `.env` (never committed).
+## Supabase SQL (run once if tables already exist)
+
+```sql
+ALTER TABLE users  ADD COLUMN IF NOT EXISTS random  VARCHAR(6)  DEFAULT '';
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS status  VARCHAR(20) DEFAULT 'open';
+```
+
+Also run the full `database/schema.sql` for new deployments — it includes `push_subscriptions` and `rate_limits` tables.
+
+## Test credentials
+
+- Email: jaygemawat2322@gmail.com
+- Password: test1234
+
+## Features
+
+- Bootstrap 5, fully responsive and mobile-first
+- Leaflet maps with OSRM routing (no API key needed)
+- Haversine distance calculation with Nominatim geocoding
+- Razorpay payment integration (test mode)
+- Web Push notifications (VAPID)
+- Real-time ride status polling (SSE)
+- Rate limiting on auth and payment endpoints
+- PWA — installable on Android Chrome
