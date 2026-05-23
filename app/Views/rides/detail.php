@@ -4,9 +4,11 @@
   <div class="col-12 col-md-8 col-lg-7">
 
     <?php
-      $now    = date('Y-m-d H:i:s');
-      $active = $ride['uptime'] > $now;
-      $status = $ride['status'] ?? 'open';
+      // Use DateTime for reliable comparison regardless of string format
+      $rideTime = new DateTime($ride['uptime']);
+    $nowTime  = new DateTime();
+    $active   = $rideTime > $nowTime;
+    $status   = $ride['status'] ?? 'open';
     ?>
 
     <!-- Status timeline -->
@@ -24,7 +26,7 @@
         <h5 class="card-title fw-bold">Ride Information</h5>
         <hr>
         <p><i class="bi bi-person me-2"></i>Rider:
-          <strong><a href="/profile?id=<?= (int)$ride['uid'] ?>"><?= htmlspecialchars($rider['name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8') ?></a></strong>
+          <strong><a href="/profile?id=<?= (int) $ride['uid'] ?>"><?= htmlspecialchars($rider['name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8') ?></a></strong>
         </p>
         <p><i class="bi bi-clock me-2"></i>Starting Time:
           <strong><?= htmlspecialchars($ride['uptime'], ENT_QUOTES, 'UTF-8') ?></strong>
@@ -35,16 +37,22 @@
         <p><i class="bi bi-geo me-2"></i>To:
           <strong><?= htmlspecialchars($ride['to'], ENT_QUOTES, 'UTF-8') ?></strong>
         </p>
+        <?php if (!empty($ride['distance_km'])) : ?>
+        <p><i class="bi bi-rulers me-2"></i>Distance:
+          <strong><?= round((float) $ride['distance_km']) ?> km</strong>
+          <small class="text-muted">(straight-line estimate)</small>
+        </p>
+        <?php endif; ?>
         <p><i class="bi bi-people me-2"></i>Available Vacancies:
-          <strong><span id="seats-left"><?= (int)$ride['people'] ?></span></strong>
+          <strong><span id="seats-left"><?= (int) $ride['people'] ?></span></strong>
         </p>
         <p><i class="bi bi-currency-rupee me-2"></i>Price per person:
-          <strong>Rs <?= (int)$ride['price'] ?></strong>
+          <strong>Rs <?= (int) $ride['price'] ?></strong>
         </p>
         <p><i class="bi bi-car-front me-2"></i>Vehicle:
           <strong><?= htmlspecialchars($ride['vehicle'], ENT_QUOTES, 'UTF-8') ?></strong>
         </p>
-        <?php if (!empty($ride['description'])): ?>
+        <?php if (!empty($ride['description'])) : ?>
           <p><i class="bi bi-info-circle me-2"></i>Description:
             <strong><?= htmlspecialchars($ride['description'], ENT_QUOTES, 'UTF-8') ?></strong>
           </p>
@@ -56,21 +64,21 @@
     </div>
 
     <!-- Request form -->
-    <?php if ($active && (int)$ride['uid'] !== AuthMiddleware::userId()): ?>
+    <?php if ($active && (int) $ride['uid'] !== AuthMiddleware::userId()) : ?>
       <div class="card mb-4">
         <div class="card-body">
           <h5 class="card-title fw-bold">Request this ride</h5>
           <form method="post" action="/ride/request">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(AuthMiddleware::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
-            <input type="hidden" name="cid" value="<?= (int)$ride['id'] ?>">
+            <input type="hidden" name="cid" value="<?= (int) $ride['id'] ?>">
 
-            <?php if (!empty($waypoints)): ?>
+            <?php if (!empty($waypoints)) : ?>
               <div class="row g-2 mb-3">
                 <div class="col-6">
                   <label class="form-label">From stop</label>
                   <select class="form-select" onchange="document.getElementById('formfrom').value=this.value">
                     <option value="">Select stop</option>
-                    <?php foreach ($waypoints as $wp): ?>
+                    <?php foreach ($waypoints as $wp) : ?>
                       <option value="<?= htmlspecialchars($wp, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($wp, ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                   </select>
@@ -80,7 +88,7 @@
                   <label class="form-label">To stop</label>
                   <select class="form-select" onchange="document.getElementById('formto').value=this.value">
                     <option value="">Select stop</option>
-                    <?php foreach ($waypoints as $wp): ?>
+                    <?php foreach ($waypoints as $wp) : ?>
                       <option value="<?= htmlspecialchars($wp, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($wp, ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                   </select>
@@ -94,19 +102,19 @@
             </button>
           </form>
 
-          <?php if ($status === 'requested'): ?>
+          <?php if ($status === 'requested') : ?>
             <div id="pay-section" class="mt-3">
               <button id="pay-btn" class="btn btn-success w-100"
-                      data-cid="<?= (int)$ride['id'] ?>"
-                      data-amount="<?= (int)$ride['price'] ?>">
-                <i class="bi bi-credit-card me-1"></i>Pay Rs <?= (int)$ride['price'] ?> &amp; Confirm
+                      data-cid="<?= (int) $ride['id'] ?>"
+                      data-amount="<?= (int) $ride['price'] ?>">
+                <i class="bi bi-credit-card me-1"></i>Pay Rs <?= (int) $ride['price'] ?> &amp; Confirm
               </button>
             </div>
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
           <?php endif; ?>
         </div>
       </div>
-    <?php elseif (!$active): ?>
+    <?php elseif (!$active) : ?>
       <div class="alert alert-secondary">This carpool has been archived.</div>
     <?php endif; ?>
 
@@ -116,7 +124,7 @@
 <?php
 $rideFrom = json_encode($ride['from']);
 $rideTo   = json_encode($ride['to']);
-$rideId   = (int)$ride['id'];
+$rideId   = (int) $ride['id'];
 $pageScripts = <<<SCRIPTS
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -137,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .catch(() => {});
     }
-    setInterval(pollRideStatus, 8000);
+    setInterval(pollRideStatus, 30000);
 
     const payBtn = document.getElementById("pay-btn");
     if (payBtn) {

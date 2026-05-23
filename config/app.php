@@ -10,7 +10,8 @@ return [
  * Redirect to a path, respecting APP_URL so the port is preserved.
  * Usage: redirect('/login?error=1');
  */
-function redirect(string $path): never {
+function redirect(string $path): never
+{
     $base = rtrim($_ENV['APP_URL'] ?? '', '/');
     header('Location: ' . $base . $path);
     exit;

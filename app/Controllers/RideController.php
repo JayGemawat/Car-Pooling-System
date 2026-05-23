@@ -1,14 +1,16 @@
 <?php
 
-class RideController {
-
-    public function index(): void {
+class RideController
+{
+    public function index(): void
+    {
         AuthMiddleware::require();
         $rides = Offer::getUpcoming();
         require __DIR__ . '/../Views/rides/index.php';
     }
 
-    public function search(): void {
+    public function search(): void
+    {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
 
@@ -25,7 +27,8 @@ class RideController {
         require __DIR__ . '/../Views/rides/search.php';
     }
 
-    public function show(int $id): void {
+    public function show(int $id): void
+    {
         AuthMiddleware::require();
         $ride = Offer::findById($id);
         if (!$ride) {
@@ -38,12 +41,14 @@ class RideController {
         require __DIR__ . '/../Views/rides/detail.php';
     }
 
-    public function showShare(): void {
+    public function showShare(): void
+    {
         AuthMiddleware::require();
         require __DIR__ . '/../Views/rides/share.php';
     }
 
-    public function share(): void {
+    public function share(): void
+    {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
 

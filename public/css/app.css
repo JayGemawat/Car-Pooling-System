@@ -16,7 +16,62 @@ body { background: #f8f9fa; }
   border-bottom: 1px solid #f0f0f0; }
 .autocomplete-dropdown li:hover { background: #f8f9fa; }
 .navbar-brand img { object-fit: cover; }
+
+/* ── Notification Bell ─────────────────────────────────────────────────── */
+.notif-panel {
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* Unseen notification row — light blue tint like Facebook/Instagram */
+.notif-item.notif-unseen {
+  background: #eff6ff;
+}
+.notif-item.notif-unseen:hover {
+  background: #dbeafe;
+}
+.notif-item {
+  transition: background .12s;
+}
+.notif-item:hover {
+  background: #f8f9fa;
+}
+.notif-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Dismiss (×) button inside notification item */
+.notif-del-btn {
+  opacity: 0;
+  transition: opacity .15s;
+  line-height: 1;
+}
+.notif-item:hover .notif-del-btn {
+  opacity: 1;
+}
+
+/* Bell icon pulse when there are unseen notifications */
+#notifBell.has-unseen .bi-bell {
+  animation: bell-shake 0.6s ease;
+}
+@keyframes bell-shake {
+  0%,100% { transform: rotate(0); }
+  20%      { transform: rotate(-15deg); }
+  40%      { transform: rotate(15deg); }
+  60%      { transform: rotate(-10deg); }
+  80%      { transform: rotate(10deg); }
+}
+
+/* Full notifications page — unseen row highlight */
+.list-group-item.notif-unseen {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
 @media (max-width: 576px) {
   #ride-map { height: 220px; }
   .card-body { padding: 12px; }
+  .notif-panel { min-width: 300px !important; max-width: 98vw !important; }
 }

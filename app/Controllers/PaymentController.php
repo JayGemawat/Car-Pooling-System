@@ -1,8 +1,9 @@
 <?php
 
-class PaymentController {
-
-    public function createOrder(): void {
+class PaymentController
+{
+    public function createOrder(): void
+    {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
         header('Content-Type: application/json');
@@ -11,6 +12,12 @@ class PaymentController {
         $offer = Offer::findById($cid);
         if (!$offer) {
             echo json_encode(['error' => 'Ride not found']);
+            return;
+        }
+
+        // Prevent the ride owner from paying themselves
+        if ((int)$offer['uid'] === AuthMiddleware::userId()) {
+            echo json_encode(['error' => 'You cannot pay for your own ride']);
             return;
         }
 
@@ -45,7 +52,8 @@ class PaymentController {
         ]);
     }
 
-    public function verifyPayment(): void {
+    public function verifyPayment(): void
+    {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
         header('Content-Type: application/json');

@@ -1,8 +1,9 @@
 <?php
 
-class User {
-
-    public static function findByEmail(string $email): ?array {
+class User
+{
+    public static function findByEmail(string $email): ?array
+    {
         $pdo  = getDB();
         $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
         $stmt->execute([$email]);
@@ -10,7 +11,8 @@ class User {
         return $row ?: null;
     }
 
-    public static function findById(int $uid): ?array {
+    public static function findById(int $uid): ?array
+    {
         $pdo  = getDB();
         $stmt = $pdo->prepare('SELECT * FROM users WHERE uid = ?');
         $stmt->execute([$uid]);
@@ -18,12 +20,13 @@ class User {
         return $row ?: null;
     }
 
-    public static function create(array $data): bool {
+    public static function create(array $data): bool
+    {
         $pdo  = getDB();
         $hash = password_hash($data['password'], PASSWORD_BCRYPT);
         $stmt = $pdo->prepare(
             'INSERT INTO users (name, hash, email, gender, contactno, description)
-             VALUES (?, ?, ?, ?, ?, ?)'
+             VALUES (?, ?, ?, ?, ?, ?)',
         );
         return $stmt->execute([
             $data['name'],
@@ -35,14 +38,16 @@ class User {
         ]);
     }
 
-    public static function verifyPassword(string $plain, string $hash): bool {
+    public static function verifyPassword(string $plain, string $hash): bool
+    {
         return password_verify($plain, $hash);
     }
 
-    public static function update(int $uid, array $data): bool {
+    public static function update(int $uid, array $data): bool
+    {
         $pdo  = getDB();
         $stmt = $pdo->prepare(
-            'UPDATE users SET name = ?, gender = ?, contactno = ?, description = ? WHERE uid = ?'
+            'UPDATE users SET name = ?, gender = ?, contactno = ?, description = ? WHERE uid = ?',
         );
         return $stmt->execute([
             $data['name'],
@@ -54,7 +59,8 @@ class User {
     }
 
     /** Returns all users ordered by credits DESC (for badge ranking). */
-    public static function allByCredits(): array {
+    public static function allByCredits(): array
+    {
         $pdo  = getDB();
         $stmt = $pdo->query('SELECT uid, credits FROM users ORDER BY credits DESC');
         return $stmt->fetchAll();

@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS offers (
     price       INTEGER      NOT NULL DEFAULT 0,
     vehicle     VARCHAR(250) NOT NULL,
     description TEXT         DEFAULT NULL,
-    status      VARCHAR(20)  DEFAULT 'open'
+    status      VARCHAR(20)  DEFAULT 'open',
+    distance_km NUMERIC(8,2) DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS route (
@@ -41,7 +42,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     type        INTEGER      NOT NULL,
     cid         INTEGER      NOT NULL,
     timestamp   TIMESTAMP    NOT NULL DEFAULT NOW(),
-    status      VARCHAR(255) DEFAULT NULL
+    status      VARCHAR(255) DEFAULT NULL,
+    seen        BOOLEAN      NOT NULL DEFAULT FALSE,
+    deleted_at  TIMESTAMP    DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -70,3 +73,11 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 -- Run these if tables already exist without the new columns:
 -- ALTER TABLE users  ADD COLUMN IF NOT EXISTS random  VARCHAR(6)  DEFAULT '';
 -- ALTER TABLE offers ADD COLUMN IF NOT EXISTS status  VARCHAR(20) DEFAULT 'open';
+-- ALTER TABLE offers ADD COLUMN IF NOT EXISTS distance_km NUMERIC(8,2) DEFAULT NULL;
+-- ALTER TABLE notifications ADD COLUMN IF NOT EXISTS seen       BOOLEAN   NOT NULL DEFAULT FALSE;
+-- ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL;
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_notif_receiver ON notifications(receiver, deleted_at, seen);
+CREATE INDEX IF NOT EXISTS idx_offers_uptime  ON offers(uptime, status);
+CREATE INDEX IF NOT EXISTS idx_route_cid      ON route(cid, serialno);

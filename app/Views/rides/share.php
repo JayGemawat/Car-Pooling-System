@@ -1,6 +1,6 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<?php if (isset($_GET['nerror'])): ?>
+<?php if (isset($_GET['nerror'])) : ?>
   <div class="alert alert-danger">Please enter all required details before continuing.</div>
 <?php endif; ?>
 
@@ -32,7 +32,8 @@
 
         <div class="mb-3">
           <label class="form-label">Start time of your ride</label>
-          <input type="text" id="uptimepicker" name="uptime" class="form-control" placeholder="yyyy-MM-dd HH:mm:ss" required>
+          <input type="text" id="uptimepicker" name="uptime" class="form-control datetimepicker-input"
+                 placeholder="Select date &amp; time" autocomplete="off" required>
         </div>
 
         <div class="mb-3">
@@ -82,12 +83,9 @@
 
 <?php
 $pageScripts = <<<'JS'
-<script src="/js/datetimepicker.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  if (typeof $ !== 'undefined' && $.fn.datetimepicker) {
-    $('#uptimepicker').datetimepicker({ format: 'yyyy-MM-dd hh:mm:ss' });
-  }
+  initDateTimePicker('uptimepicker');
   JaanaHaiMap.autocomplete('From');
   JaanaHaiMap.autocomplete('To');
 

@@ -7,9 +7,10 @@ require_once __DIR__ . '/Exception.php';
 require_once __DIR__ . '/PHPMailer.php';
 require_once __DIR__ . '/SMTP.php';
 
-class Mailer {
-
-    private static function make(): PHPMailer {
+class Mailer
+{
+    private static function make(): PHPMailer
+    {
         $mail = new PHPMailer(true);
         $mail->isSMTP();
         $mail->Host       = $_ENV['MAIL_HOST'];
@@ -23,7 +24,8 @@ class Mailer {
         return $mail;
     }
 
-    public static function sendWelcome(string $toEmail, string $toName): bool {
+    public static function sendWelcome(string $toEmail, string $toName): bool
+    {
         try {
             $mail = self::make();
             $mail->addAddress($toEmail, $toName);
@@ -41,7 +43,7 @@ class Mailer {
     public static function sendRideConfirmation(
         string $toEmail,
         string $toName,
-        array $ride
+        array $ride,
     ): bool {
         try {
             $mail = self::make();
@@ -61,7 +63,7 @@ class Mailer {
         string $toEmail,
         string $toName,
         string $riderName,
-        array $ride
+        array $ride,
     ): bool {
         try {
             $mail = self::make();
@@ -77,9 +79,48 @@ class Mailer {
         }
     }
 
+    public static function sendRideApproved(
+        string $toEmail,
+        string $toName,
+        array $ride,
+    ): bool {
+        try {
+            $mail = self::make();
+            $mail->addAddress($toEmail, $toName);
+            $mail->Subject = 'Your ride request was approved! 🎉 — JaanaHai';
+            $mail->Body    = self::rideApprovedTemplate($toName, $ride);
+            $mail->AltBody = "Hi $toName, your ride request from {$ride['from']} to {$ride['to']} was approved!";
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log('Mailer error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function sendRideDeclined(
+        string $toEmail,
+        string $toName,
+        array $ride,
+    ): bool {
+        try {
+            $mail = self::make();
+            $mail->addAddress($toEmail, $toName);
+            $mail->Subject = 'Your ride request was declined — JaanaHai';
+            $mail->Body    = self::rideDeclinedTemplate($toName, $ride);
+            $mail->AltBody = "Hi $toName, unfortunately your ride request from {$ride['from']} to {$ride['to']} was declined.";
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log('Mailer error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     // ── Templates ────────────────────────────────────────────────────────────
 
-    private static function welcomeTemplate(string $name): string {
+    private static function welcomeTemplate(string $name): string
+    {
         return "
         <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:24px'>
             <h2 style='color:#1a1a2e'>Welcome to JaanaHai 👋</h2>
@@ -94,7 +135,8 @@ class Mailer {
         </div>";
     }
 
-    private static function rideConfirmationTemplate(string $name, array $ride): string {
+    private static function rideConfirmationTemplate(string $name, array $ride): string
+    {
         return "
         <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:24px'>
             <h2 style='color:#1a1a2e'>Ride Request Sent ✅</h2>
@@ -113,7 +155,7 @@ class Mailer {
     private static function rideRequestTemplate(
         string $driverName,
         string $riderName,
-        array $ride
+        array $ride,
     ): string {
         return "
         <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:24px'>
@@ -126,6 +168,41 @@ class Mailer {
                 <p style='margin:4px 0'><strong>Time:</strong> {$ride['uptime']}</p>
             </div>
             <p>Log in to JaanaHai to accept or reject this request.</p>
+            <p style='color:#888;font-size:13px'>JaanaHai — Travel together, save together.</p>
+        </div>";
+    }
+
+    private static function rideApprovedTemplate(string $name, array $ride): string
+    {
+        return "
+        <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:24px'>
+            <h2 style='color:#16a34a'>Ride Approved! 🎉</h2>
+            <p>Hi <strong>$name</strong>,</p>
+            <p>Great news — your ride request has been <strong style='color:#16a34a'>approved</strong>!</p>
+            <div style='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0'>
+                <p style='margin:4px 0'><strong>From:</strong> {$ride['from']}</p>
+                <p style='margin:4px 0'><strong>To:</strong> {$ride['to']}</p>
+                <p style='margin:4px 0'><strong>Time:</strong> {$ride['uptime']}</p>
+                <p style='margin:4px 0'><strong>Vehicle:</strong> {$ride['vehicle']}</p>
+            </div>
+            <p>Have a safe and comfortable journey!</p>
+            <p style='color:#888;font-size:13px'>JaanaHai — Travel together, save together.</p>
+        </div>";
+    }
+
+    private static function rideDeclinedTemplate(string $name, array $ride): string
+    {
+        return "
+        <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:24px'>
+            <h2 style='color:#dc2626'>Ride Request Declined</h2>
+            <p>Hi <strong>$name</strong>,</p>
+            <p>Unfortunately, your ride request has been <strong style='color:#dc2626'>declined</strong> by the driver.</p>
+            <div style='background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:16px 0'>
+                <p style='margin:4px 0'><strong>From:</strong> {$ride['from']}</p>
+                <p style='margin:4px 0'><strong>To:</strong> {$ride['to']}</p>
+                <p style='margin:4px 0'><strong>Time:</strong> {$ride['uptime']}</p>
+            </div>
+            <p>Don't worry — there are other rides available. <a href='" . ($_ENV['APP_URL'] ?? '') . "/search'>Search for another ride</a>.</p>
             <p style='color:#888;font-size:13px'>JaanaHai — Travel together, save together.</p>
         </div>";
     }

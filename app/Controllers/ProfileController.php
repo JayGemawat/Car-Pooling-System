@@ -1,21 +1,33 @@
 <?php
 
-class ProfileController {
-
-    public function show(): void {
+class ProfileController
+{
+    public function show(): void
+    {
         AuthMiddleware::require();
 
-        $uid      = AuthMiddleware::userId();
-        $user     = User::findById($uid);
-        $rides    = Offer::getByUserId($uid);
-        $allUsers = User::allByCredits();
+        $currentUserId = AuthMiddleware::userId();
 
-        $badge = self::computeBadge($uid, $allUsers);
+        // Support viewing another user's profile via ?id=
+        $viewId = isset($_GET['id']) ? (int) $_GET['id'] : $currentUserId;
+        $isOwnProfile = ($viewId === $currentUserId);
+
+        $user     = User::findById($viewId);
+        if (!$user) {
+            http_response_code(404);
+            echo '<div class="container mt-4"><div class="alert alert-danger">User not found.</div></div>';
+            return;
+        }
+
+        $rides    = Offer::getByUserId($viewId);
+        $allUsers = User::allByCredits();
+        $badge    = self::computeBadge($viewId, $allUsers);
 
         require __DIR__ . '/../Views/profile/index.php';
     }
 
-    public function update(): void {
+    public function update(): void
+    {
         AuthMiddleware::require();
         AuthMiddleware::verifyCsrf();
 
@@ -41,19 +53,26 @@ class ProfileController {
         redirect('/profile?changed=1');
     }
 
-    public static function computeBadge(int $uid, array $allUsers): string {
+    public static function computeBadge(int $uid, array $allUsers): string
+    {
         $total  = count($allUsers);
         $top    = (int) ceil($total / 3);
         $middle = (int) ceil($total * 2 / 3);
         $rank   = 1;
 
         foreach ($allUsers as $u) {
-            if ((int) $u['uid'] === $uid) break;
+            if ((int) $u['uid'] === $uid) {
+                break;
+            }
             $rank++;
         }
 
-        if ($rank <= $top)    return 'Trusted Car Pooler';
-        if ($rank <= $middle) return 'Budding Car Pooler';
+        if ($rank <= $top) {
+            return 'Trusted Car Pooler';
+        }
+        if ($rank <= $middle) {
+            return 'Budding Car Pooler';
+        }
         return 'Newbie in town';
     }
 }
