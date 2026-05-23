@@ -1,13 +1,15 @@
 <?php
 
-class AuthController {
-
-    public function showLogin(): void {
+class AuthController
+{
+    public function showLogin(): void
+    {
         AuthMiddleware::guest();
         require __DIR__ . '/../Views/auth/login.php';
     }
 
-    public function login(): void {
+    public function login(): void
+    {
         AuthMiddleware::guest();
         AuthMiddleware::verifyCsrf();
 
@@ -31,12 +33,14 @@ class AuthController {
         redirect('/');
     }
 
-    public function showRegister(): void {
+    public function showRegister(): void
+    {
         AuthMiddleware::guest();
         require __DIR__ . '/../Views/auth/register.php';
     }
 
-    public function register(): void {
+    public function register(): void
+    {
         AuthMiddleware::guest();
         AuthMiddleware::verifyCsrf();
 
@@ -76,8 +80,11 @@ class AuthController {
         redirect('/login?registered=1');
     }
 
-    public function logout(): void {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+    public function logout(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $_SESSION = [];
         if (isset($_COOKIE[session_name()])) {
             setcookie(session_name(), '', time() - 42000, '/');

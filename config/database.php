@@ -3,9 +3,12 @@
 require_once __DIR__ . '/env.php';
 loadEnv(__DIR__ . '/../.env');
 
-function getDB(): PDO {
+function getDB(): PDO
+{
     static $pdo = null;
-    if ($pdo !== null) return $pdo;
+    if ($pdo !== null) {
+        return $pdo;
+    }
 
     $host = $_ENV['DB_HOST'];
     $port = $_ENV['DB_PORT'];

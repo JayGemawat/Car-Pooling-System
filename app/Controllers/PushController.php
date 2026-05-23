@@ -1,21 +1,43 @@
 <?php
 
-class PushController {
-
-    public function subscribe(): void {
+class PushController
+{
+    public function subscribe(): void
+    {
         AuthMiddleware::require();
         header('Content-Type: application/json');
 
         $uid  = AuthMiddleware::userId();
         $body = json_decode(file_get_contents('php://input'), true);
 
-        $endpoint = $body['endpoint']       ?? '';
-        $p256dh   = $body['keys']['p256dh'] ?? '';
-        $auth     = $body['keys']['auth']   ?? '';
+        if (!is_array($body)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            return;
+        }
+
+        // CSRF check via JSON body token
+        $token = $body['csrf_token'] ?? '';
+        if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF token mismatch']);
+            return;
+        }
+
+        $endpoint = trim($body['endpoint']       ?? '');
+        $p256dh   = trim($body['keys']['p256dh'] ?? '');
+        $auth     = trim($body['keys']['auth']   ?? '');
 
         if (!$endpoint || !$p256dh || !$auth) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid subscription data']);
+            return;
+        }
+
+        // Validate endpoint is a proper HTTPS URL
+        if (!filter_var($endpoint, FILTER_VALIDATE_URL) || !str_starts_with($endpoint, 'https://')) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid endpoint']);
             return;
         }
 
@@ -38,7 +60,8 @@ class PushController {
     /**
      * Send a push notification to a user by uid.
      */
-    public static function sendToUser(int $uid, string $title, string $body): void {
+    public static function sendToUser(int $uid, string $title, string $body): void
+    {
         try {
             $pdo  = getDB();
             $stmt = $pdo->prepare("SELECT * FROM push_subscriptions WHERE uid = ?");
@@ -55,8 +78,11 @@ class PushController {
     }
 
     private static function sendPush(
-        string $endpoint, string $p256dh, string $authKey,
-        string $title,    string $body
+        string $endpoint,
+        string $p256dh,
+        string $authKey,
+        string $title,
+        string $body,
     ): void {
         $payload = json_encode(['title' => $title, 'body' => $body]);
 
@@ -64,7 +90,9 @@ class PushController {
         $vapidPrivate = $_ENV['VAPID_PRIVATE_KEY'] ?? '';
         $subject      = $_ENV['VAPID_SUBJECT']     ?? '';
 
-        if (!$vapidPublic || !$vapidPrivate) return;
+        if (!$vapidPublic || !$vapidPrivate) {
+            return;
+        }
 
         $parsed   = parse_url($endpoint);
         $audience = $parsed['scheme'] . '://' . $parsed['host'];
@@ -79,7 +107,9 @@ class PushController {
 
         $privateKeyPem = self::vapidToPem($vapidPrivate);
         $pkey = openssl_pkey_get_private($privateKeyPem);
-        if (!$pkey) return;
+        if (!$pkey) {
+            return;
+        }
         openssl_sign($sigInput, $sig, $pkey, OPENSSL_ALGO_SHA256);
         $jwt = "$sigInput." . self::base64url($sig);
 
@@ -101,18 +131,20 @@ class PushController {
         curl_close($ch);
     }
 
-    private static function base64url(string $data): string {
+    private static function base64url(string $data): string
+    {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-    private static function vapidToPem(string $key): string {
+    private static function vapidToPem(string $key): string
+    {
         $decoded = base64_decode(strtr($key, '-_', '+/') . str_repeat('=', (4 - strlen($key) % 4) % 4));
-        return "-----BEGIN EC PRIVATE KEY-----\n" .
-               chunk_split(base64_encode(
-                   "\x30\x41\x02\x01\x00\x30\x13\x06\x07\x2a\x86\x48\xce\x3d\x02\x01" .
-                   "\x06\x08\x2a\x86\x48\xce\x3d\x03\x01\x07\x04\x27\x30\x25\x02\x01" .
-                   "\x01\x04\x20" . $decoded
-               ), 64, "\n") .
-               "-----END EC PRIVATE KEY-----";
+        return "-----BEGIN EC PRIVATE KEY-----\n"
+               . chunk_split(base64_encode(
+                   "\x30\x41\x02\x01\x00\x30\x13\x06\x07\x2a\x86\x48\xce\x3d\x02\x01"
+                   . "\x06\x08\x2a\x86\x48\xce\x3d\x03\x01\x07\x04\x27\x30\x25\x02\x01"
+                   . "\x01\x04\x20" . $decoded,
+               ), 64, "\n")
+               . "-----END EC PRIVATE KEY-----";
     }
 }

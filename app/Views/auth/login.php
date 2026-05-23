@@ -1,12 +1,12 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<?php if (isset($_GET['error'])): ?>
+<?php if (isset($_GET['error'])) : ?>
   <div class="alert alert-danger">Incorrect email or password.</div>
-<?php elseif (isset($_GET['nerror'])): ?>
+<?php elseif (isset($_GET['nerror'])) : ?>
   <div class="alert alert-warning">Please fill in all fields.</div>
-<?php elseif (isset($_GET['registered'])): ?>
+<?php elseif (isset($_GET['registered'])) : ?>
   <div class="alert alert-success">Registered! You can now log in.</div>
-<?php elseif (isset($_GET['logout'])): ?>
+<?php elseif (isset($_GET['logout'])) : ?>
   <div class="alert alert-info">You have been logged out.</div>
 <?php endif; ?>
 

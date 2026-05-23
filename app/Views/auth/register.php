@@ -1,8 +1,8 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<?php if (isset($_GET['nerror'])): ?>
+<?php if (isset($_GET['nerror'])) : ?>
   <div class="alert alert-danger">Please fill in all required fields with valid data.</div>
-<?php elseif (isset($_GET['exists'])): ?>
+<?php elseif (isset($_GET['exists'])) : ?>
   <div class="alert alert-danger">An account with that email already exists.</div>
 <?php endif; ?>
 

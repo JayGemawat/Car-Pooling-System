@@ -1,6 +1,41 @@
+# Environment — never commit secrets
 .env
-vendor/
-.DS_Store
-*.log
-seed.php
 
+# PHP dependencies — install with `composer install`
+vendor/
+composer.lock
+
+# Database seed (contains test data / credentials)
+database/seed.php
+
+# PHP CS Fixer cache & config
+.php-cs-fixer.cache
+.php-cs-fixer.dist.php
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE / editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+nbproject/
+
+# PHP error / debug logs
+*.log
+error_log
+php_errors.log
+
+# Temporary / upload files
+/tmp/
+/uploads/
+*.tmp
+*.bak
+*.swp
+
+# PHPUnit
+.phpunit.result.cache
+/coverage/
