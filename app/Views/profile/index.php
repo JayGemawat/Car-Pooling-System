@@ -85,7 +85,7 @@
                   : null;
             $distLabel = $km ? round($km) . ' km' : '';
             $icon = ($r['vehicle'] === 'taxi') ? 'bi-taxi-front' : 'bi-car-front';
-            $isArchived = !empty($r['uptime']) && (new DateTime($r['uptime'])) <= new DateTime();
+            $isArchived = !empty($r['uptime']) && (new DateTime($r['uptime'], new DateTimeZone('UTC'))) <= new DateTime('now', new DateTimeZone('UTC'));
             ?>
           <div class="col-12">
             <div class="card ride-card" onclick="window.location='/ride/<?= (int) $r['id'] ?>'">
@@ -98,7 +98,7 @@
                     <?= htmlspecialchars($r['to'], ENT_QUOTES, 'UTF-8') ?>
                   </div>
                   <small class="text-muted">
-                    <i class="bi bi-clock me-1"></i><?= htmlspecialchars($r['uptime'], ENT_QUOTES, 'UTF-8') ?>
+                    <i class="bi bi-clock me-1"></i><?= htmlspecialchars(formatTime($r['uptime']), ENT_QUOTES, 'UTF-8') ?>
                     &nbsp;·&nbsp;<i class="bi bi-car-front me-1"></i><?= htmlspecialchars(ucfirst($r['vehicle']), ENT_QUOTES, 'UTF-8') ?>
                   </small>
                 </div>

@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// All timestamps stored and compared in UTC
+date_default_timezone_set('UTC');
+
 require_once __DIR__ . '/../config/env.php';
 loadEnv(__DIR__ . '/../.env');
 
