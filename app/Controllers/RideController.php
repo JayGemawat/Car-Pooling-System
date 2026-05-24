@@ -66,6 +66,18 @@ class RideController
             redirect('/share?nerror=1');
         }
 
+        // Treat submitted time as local IST (UTC+5:30) and convert to UTC for storage.
+        // This ensures DB comparisons with NOW() (UTC) work correctly.
+        try {
+            $tz       = new DateTimeZone($_ENV['APP_TIMEZONE'] ?? 'Asia/Kolkata');
+            $utcTz    = new DateTimeZone('UTC');
+            $dt       = new DateTime($uptime, $tz);
+            $dt->setTimezone($utcTz);
+            $uptime   = $dt->format('Y-m-d H:i:s');
+        } catch (Exception $e) {
+            redirect('/share?nerror=1');
+        }
+
         $allowedVehicles = ['car', 'taxi', 'auto'];
         if (!in_array($vehicle, $allowedVehicles, true)) {
             $vehicle = 'car';

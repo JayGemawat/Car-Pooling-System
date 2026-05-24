@@ -4,11 +4,16 @@
   <div class="col-12 col-md-8 col-lg-7">
 
     <?php
-      // Use DateTime for reliable comparison regardless of string format
-      $rideTime = new DateTime($ride['uptime']);
-    $nowTime  = new DateTime();
-    $active   = $rideTime > $nowTime;
-    $status   = $ride['status'] ?? 'open';
+      // DB stores UTC. Convert to local timezone for display and comparison.
+      $appTz    = new DateTimeZone($_ENV['APP_TIMEZONE'] ?? 'Asia/Kolkata');
+      $utcTz    = new DateTimeZone('UTC');
+      $rideTime = new DateTime($ride['uptime'], $utcTz);
+      $nowUtc   = new DateTime('now', $utcTz);
+      $active   = $rideTime > $nowUtc;
+      $status   = $ride['status'] ?? 'open';
+      // Format uptime for display in local time
+      $rideTime->setTimezone($appTz);
+      $uptimeDisplay = $rideTime->format('D, d M Y  H:i');
     ?>
 
     <!-- Status timeline -->
@@ -29,7 +34,7 @@
           <strong><a href="/profile?id=<?= (int) $ride['uid'] ?>"><?= htmlspecialchars($rider['name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8') ?></a></strong>
         </p>
         <p><i class="bi bi-clock me-2"></i>Starting Time:
-          <strong><?= htmlspecialchars($ride['uptime'], ENT_QUOTES, 'UTF-8') ?></strong>
+          <strong><?= htmlspecialchars($uptimeDisplay, ENT_QUOTES, 'UTF-8') ?></strong>
         </p>
         <p><i class="bi bi-geo-alt me-2"></i>From:
           <strong><?= htmlspecialchars($ride['from'], ENT_QUOTES, 'UTF-8') ?></strong>

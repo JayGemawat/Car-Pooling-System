@@ -66,7 +66,7 @@
                     <i class="bi bi-arrow-right mx-1"></i>
                     <?= htmlspecialchars($r['to'], ENT_QUOTES, 'UTF-8') ?>
                   </div>
-                  <small class="text-muted"><i class="bi bi-clock me-1"></i><?= htmlspecialchars($r['uptime'], ENT_QUOTES, 'UTF-8') ?></small>
+                  <small class="text-muted"><i class="bi bi-clock me-1"></i><?= htmlspecialchars(formatTime($r['uptime']), ENT_QUOTES, 'UTF-8') ?></small>
                 </div>
                 <div class="d-flex flex-column align-items-end gap-1">
                   <?php if ($distLabel) : ?>
